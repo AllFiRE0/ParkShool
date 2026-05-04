@@ -36,6 +36,7 @@ public class DashJump implements Mechanic {
     private final Map<UUID, Long> lastDashTimes = new HashMap<>();
     private final Map<UUID, Long> lastForwardPress = new HashMap<>(); // для double_forward
     private static final long DOUBLE_FORWARD_WINDOW = 300; // мс
+    private ParticleManager particleManager;
 
     public DashJump(ParkShool plugin) {
         this.plugin = plugin;
