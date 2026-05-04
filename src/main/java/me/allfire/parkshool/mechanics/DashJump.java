@@ -126,6 +126,10 @@ public class DashJump implements Mechanic {
         dash.setY(player.getVelocity().getY() + dash.getY());
 
         player.setVelocity(dash);
+        // Частицы
+        if (particleManager != null) {
+            particleManager.spawnAtPlayer(player);
+        }
         lastDashTimes.put(uuid, now);
 
         MessageSender msg = plugin.getMessageSender();
