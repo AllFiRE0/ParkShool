@@ -1,0 +1,36 @@
+name: ParkShool
+version: "1.0.0"
+main: me.allfire.parkshool.ParkShool
+api-version: "1.21"
+author: AllFire
+description: Parkour mechanics plugin with double jump, wall cling, charged jump and dash
+softdepend: [PlaceholderAPI]
+
+permissions:
+  parkshool.doublejump:
+    description: Позволяет использовать двойной прыжок
+    default: true
+  parkshool.wallcling:
+    description: Позволяет использовать зацеп за стену
+    default: true
+  parkshool.chargedjump:
+    description: Позволяет использовать усиленный прыжок
+    default: true
+  parkshool.chargedjump.elytra:
+    description: Позволяет использовать элитры во время усиленного прыжка
+    default: false
+  parkshool.dashjump:
+    description: Позволяет использовать прыжок-рывок
+    default: true
+  parkshool.debug:
+    description: Видеть дебаг-информацию
+    default: op
+  parkshool.admin:
+    description: Админские команды
+    default: op
+
+commands:
+  parkshool:
+    description: Главная команда ParkShool
+    aliases: [ps, parkour]
+    permission: parkshool.admin
