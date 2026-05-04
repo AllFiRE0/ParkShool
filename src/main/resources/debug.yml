@@ -1,0 +1,10 @@
+# ParkShool v1.0.0 - Настройки дебага
+
+debug:
+  default_enabled: false
+  show_conditions_evaluation: true
+  show_formula_breakdown: true
+  show_timers: true
+  show_state_changes: true
+  output_channel: "chat"
+  prefix: "&7[&eParkShool Debug&7] "
