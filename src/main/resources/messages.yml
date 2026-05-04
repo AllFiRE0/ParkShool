@@ -1,0 +1,16 @@
+# ParkShool v1.0.0 - Сообщения
+
+global:
+  prefix: "&8[&bParkShool&8] "
+  no_permission: "&cУ тебя нет прав на это!"
+  unknown_command: "&cНеизвестная команда."
+  reload_complete: "&aКонфигурация перезагружена."
+
+default_channels:
+  no_permission: "actionbar"
+  on_cooldown: "actionbar"
+  activated: "chat"
+  deactivated: "actionbar"
+  interrupted: "actionbar"
+
+time_format: "%.1f"
