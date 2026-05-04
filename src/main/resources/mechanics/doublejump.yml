@@ -1,0 +1,48 @@
+# ParkShool - Double Jump
+
+doublejump:
+  enabled: true
+
+  count_cap_formula: "5"
+  count_cap_fallback: 3
+  count_cap_cap: 10
+
+  timeout_ticks_formula: "20"
+  timeout_ticks_fallback: 20
+  timeout_ticks_cap: 100
+
+  height_formula: "1.5"
+  height_fallback: 2.0
+  height_cap: 7.0
+
+  max_safe_fall_distance_formula: "6.0"
+  max_safe_fall_distance_fallback: 6.0
+  max_safe_fall_distance_cap: 20.0
+
+  preserve_fall_distance: true
+
+  fall_damage_multiplier_formula: "1.0"
+  fall_damage_multiplier_fallback: 1.0
+  fall_damage_multiplier_cap: 3.0
+
+  conditions:
+    - type: permission
+      permission: "parkshool.doublejump"
+    - type: gamemode
+      allowed: ["survival", "adventure"]
+
+  messages:
+    no_permission:
+      enabled: false
+      channel: "actionbar"
+      text: "&cНет прав на двойной прыжок!"
+    on_cooldown:
+      enabled: true
+      channel: "actionbar"
+      text: "&eПодожди %time% сек."
+    fall_too_far:
+      enabled: true
+      channel: "title"
+      text: "&cСлишком высоко для двойного прыжка!"
+
+  debug: false
