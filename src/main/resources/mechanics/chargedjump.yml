@@ -61,6 +61,16 @@ chargedjump:
       text: "&cЗарядка прервана!"
     no_elytra:
       enabled: true
+
+  particles:
+    enabled: false
+    type: "CLOUD"
+    count: 8
+    offset_x: 0.3
+    offset_y: 0.1
+    offset_z: 0.3
+    speed: 0.05
+    extra: 0
       channel: "actionbar"
       text: "&cЭлитры запрещены!"
 
