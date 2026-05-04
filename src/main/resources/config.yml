@@ -1,0 +1,12 @@
+# ParkShool v1.0.0 by AllFire
+# Главный конфигурационный файл
+
+constants:
+  BASE_JUMP: 1.5
+  TICK_TO_SECOND: 20
+  GRAVITY: 9.81
+
+dependencies:
+  placeholderapi:
+    required: false
+    warn_missing: true
