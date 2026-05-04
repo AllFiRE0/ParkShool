@@ -1,0 +1,36 @@
+# ParkShool - Dash Jump
+
+dashjump:
+  enabled: true
+
+  activation: "shift_jump"
+  allow_in_air: true
+  allow_on_ground: true
+
+  distance_formula: "4.0"
+  distance_fallback: 4.0
+  distance_cap: 15.0
+
+  speed_formula: "0.8"
+  speed_fallback: 0.8
+  speed_cap: 2.0
+
+  cooldown_ticks_formula: "40"
+  cooldown_ticks_fallback: 40
+  cooldown_ticks_cap: 200
+
+  conditions:
+    - type: permission
+      permission: "parkshool.dashjump"
+
+  messages:
+    on_cooldown:
+      enabled: true
+      channel: "actionbar"
+      text: "&eРывок через %time% сек."
+    activated:
+      enabled: false
+      channel: "chat"
+      text: "&aРывок!"
+
+  debug: false
