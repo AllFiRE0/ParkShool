@@ -1,0 +1,57 @@
+# ParkShool - Wall Cling
+
+wallcling:
+  enabled: true
+
+  duration_ticks_formula: "40"
+  duration_ticks_fallback: 40
+  duration_ticks_cap: 200
+
+  leap_distance_formula: "3.0"
+  leap_distance_fallback: 3.0
+  leap_distance_cap: 15.0
+
+  slide_speed_formula: "0.1"
+  slide_speed_fallback: 0.1
+  slide_speed_cap: 0.5
+
+  cling_angle_formula: "45"
+  cling_angle_fallback: 45
+  cling_angle_cap: 90
+
+  max_chain_formula: "3"
+  max_chain_fallback: 3
+  max_chain_cap: 10
+
+  min_distance_formula: "0.5"
+  min_distance_fallback: 0.5
+  min_distance_cap: 2.0
+
+  excluded_blocks:
+    - GLASS
+    - GLASS_PANE
+    - LEAVES
+    - LADDER
+    - VINE
+
+  conditions:
+    - type: permission
+      permission: "parkshool.wallcling"
+    - type: gamemode
+      allowed: ["survival", "adventure"]
+
+  messages:
+    cling_start:
+      enabled: true
+      channel: "actionbar"
+      text: "&aЗацеп!"
+    cling_end:
+      enabled: true
+      channel: "actionbar"
+      text: "&cСоскальзываешь..."
+    leap:
+      enabled: false
+      channel: "chat"
+      text: "&aОтскок!"
+
+  debug: false
