@@ -8,6 +8,8 @@ import org.bukkit.Location;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+import me.allfire.parkshool.particles.ParticleManager;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.*;
 
@@ -68,6 +70,12 @@ public class DashJump implements Mechanic {
         this.cooldownFormula = config.getString("cooldown_ticks_formula", "40");
         this.cooldownFallback = config.getInt("cooldown_ticks_fallback", 40);
         this.cooldownCap = config.contains("cooldown_ticks_cap") ? config.getInt("cooldown_ticks_cap") : null;
+
+        // Загрузка частиц
+        ConfigurationSection particleSection = config.getConfigurationSection("particles");
+        if (particleSection != null) {
+            this.particleManager = new ParticleManager(particleSection);
+        }
     }
 
     @Override
