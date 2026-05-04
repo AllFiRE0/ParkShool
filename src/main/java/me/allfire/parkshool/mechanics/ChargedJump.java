@@ -13,6 +13,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
+import me.allfire.parkshool.particles.ParticleManager;
 
 import java.util.*;
 
@@ -36,6 +37,7 @@ public class ChargedJump implements Mechanic {
     private final Set<UUID> fallDamageNegated = new HashSet<>();
     private final Map<UUID, Location> chargeStartLocations = new HashMap<>();
     private final Map<UUID, Long> elytraDisabled = new HashMap<>();
+    private ParticleManager particleManager;
 
     private static class LevelConfig {
         String chargeTicksFormula;
@@ -99,6 +101,12 @@ public class ChargedJump implements Mechanic {
                     plugin.getLogger().warning("Неверный номер уровня в chargedjump.yml: " + key);
                 }
             }
+        }
+
+        // Загрузка частиц
+        ConfigurationSection particleSection = config.getConfigurationSection("particles");
+        if (particleSection != null) {
+            this.particleManager = new ParticleManager(particleSection);
         }
     }
 
@@ -218,6 +226,10 @@ public class ChargedJump implements Mechanic {
 
         velocity.setY(height * speed);
         player.setVelocity(velocity);
+        // Частицы
+        if (particleManager != null) {
+            particleManager.spawnAtPlayer(player);
+        }
 
         // Защита от урона падения
         fallDamageNegated.add(uuid);
