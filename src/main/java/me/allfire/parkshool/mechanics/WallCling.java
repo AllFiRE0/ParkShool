@@ -4,10 +4,11 @@ import me.allfire.parkshool.ParkShool;
 import me.allfire.parkshool.conditions.ConditionParser;
 import me.allfire.parkshool.formula.FormulaParser;
 import me.allfire.parkshool.messages.MessageSender;
+import me.allfire.parkshool.particles.ParticleManager;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -48,10 +49,11 @@ public class WallCling implements Mechanic {
     private final Map<UUID, ClingState> clingStates = new HashMap<>();
     private final Map<UUID, Integer> chainCounts = new HashMap<>();
     private final Map<UUID, BukkitTask> clingTasks = new HashMap<>();
+    private ParticleManager particleManager;
 
     private enum ClingState {
-        CLINGING,       // висит на стене
-        SLIDING,        // сползает
+        CLINGING,
+        SLIDING,
         NONE
     }
 
@@ -105,6 +107,12 @@ public class WallCling implements Mechanic {
                 plugin.getLogger().warning("Неизвестный материал в excluded_blocks: " + matName);
             }
         }
+
+        // Загрузка частиц
+        ConfigurationSection particleSection = config.getConfigurationSection("particles");
+        if (particleSection != null) {
+            this.particleManager = new ParticleManager(particleSection);
+        }
     }
 
     @Override
@@ -119,7 +127,6 @@ public class WallCling implements Mechanic {
 
     @Override
     public void handleMove(Player player, Location from, Location to) {
-        // Не используется, основная логика в onSneakStart и в таймере
     }
 
     @Override
@@ -130,17 +137,14 @@ public class WallCling implements Mechanic {
 
         UUID uuid = player.getUniqueId();
 
-        // Проверяем, не исчерпана ли цепочка
         int maxChain = FormulaParser.parseInt(maxChainFormula, player, maxChainFallback, maxChainCap);
         int currentChain = chainCounts.getOrDefault(uuid, 0);
         if (currentChain >= maxChain) return;
 
-        // Проверяем, смотрит ли игрок на стену
         Block targetBlock = getTargetWall(player);
         if (targetBlock == null) return;
         if (excludedBlocks.contains(targetBlock.getType())) return;
 
-        // Проверяем расстояние и угол
         double minDist = FormulaParser.parseDouble(minDistanceFormula, player, minDistanceFallback, minDistanceCap);
         double clingAngle = FormulaParser.parseDouble(clingAngleFormula, player, clingAngleFallback, clingAngleCap);
 
@@ -150,15 +154,12 @@ public class WallCling implements Mechanic {
 
         if (wallNormal == null) return;
 
-        // Угол между взглядом и нормалью стены
         double angle = Math.toDegrees(Math.acos(direction.dot(wallNormal) * -1));
         if (angle > clingAngle) return;
 
-        // Расстояние до стены
         double distance = targetBlock.getLocation().distance(eye);
-        if (distance > minDist * 2) return; // примерная проверка
+        if (distance > minDist * 2) return;
 
-        // Зацеп!
         startCling(player, targetBlock);
     }
 
@@ -176,7 +177,6 @@ public class WallCling implements Mechanic {
         UUID uuid = player.getUniqueId();
         ClingState state = clingStates.getOrDefault(uuid, ClingState.NONE);
 
-        // Если игрок висит и нажал прыжок — отскок
         if (state == ClingState.CLINGING) {
             performLeap(player);
         }
@@ -193,7 +193,6 @@ public class WallCling implements Mechanic {
 
     @Override
     public void onDamage(Player player) {
-        // Прерываем зацеп при уроне
         stopCling(player);
     }
 
@@ -213,9 +212,6 @@ public class WallCling implements Mechanic {
         chainCounts.clear();
     }
 
-    /**
-     * Находит стену, на которую смотрит игрок.
-     */
     private Block getTargetWall(Player player) {
         Location eye = player.getEyeLocation();
         Vector direction = eye.getDirection();
@@ -230,9 +226,6 @@ public class WallCling implements Mechanic {
         return null;
     }
 
-    /**
-     * Вычисляет нормаль к стене от блока в сторону игрока.
-     */
     private Vector getWallNormal(Block block, Location playerEye) {
         Location blockLoc = block.getLocation().add(0.5, 0.5, 0.5);
         Vector toPlayer = playerEye.toVector().subtract(blockLoc.toVector());
@@ -250,13 +243,9 @@ public class WallCling implements Mechanic {
         }
     }
 
-    /**
-     * Начинает зацеп за стену.
-     */
     private void startCling(Player player, Block wallBlock) {
         UUID uuid = player.getUniqueId();
 
-        // Останавливаем движение
         player.setVelocity(new Vector(0, 0, 0));
 
         clingStates.put(uuid, ClingState.CLINGING);
@@ -268,7 +257,6 @@ public class WallCling implements Mechanic {
 
         plugin.getDebugger().debug(player, "WallCling", "Зацеп! Длительность=" + duration + " тиков");
 
-        // Запускаем таймер
         BukkitTask task = new BukkitRunnable() {
             int ticksLeft = duration;
 
@@ -289,7 +277,6 @@ public class WallCling implements Mechanic {
                 ticksLeft--;
 
                 if (ticksLeft <= 0) {
-                    // Переход к сползанию
                     startSlide(player);
                     cancel();
                 }
@@ -299,9 +286,6 @@ public class WallCling implements Mechanic {
         clingTasks.put(uuid, task);
     }
 
-    /**
-     * Начинает сползание по стене.
-     */
     private void startSlide(Player player) {
         UUID uuid = player.getUniqueId();
         clingStates.put(uuid, ClingState.SLIDING);
@@ -334,7 +318,6 @@ public class WallCling implements Mechanic {
                     return;
                 }
 
-                // Медленно опускаем игрока
                 Location loc = player.getLocation();
                 loc.setY(loc.getY() - slideSpeed);
                 player.teleport(loc);
@@ -344,27 +327,25 @@ public class WallCling implements Mechanic {
         clingTasks.put(uuid, task);
     }
 
-    /**
-     * Отскок от стены.
-     */
     private void performLeap(Player player) {
         UUID uuid = player.getUniqueId();
 
         double leapDistance = FormulaParser.parseDouble(leapDistanceFormula, player, leapDistanceFallback, leapDistanceCap);
 
-        // Направление — куда смотрит игрок
         Vector direction = player.getEyeLocation().getDirection().normalize();
 
-        // Применяем импульс
         Vector leap = direction.multiply(leapDistance);
-        leap.setY(leap.getY() + 0.5); // небольшой подброс для удобства
+        leap.setY(leap.getY() + 0.5);
         player.setVelocity(leap);
 
-        // Увеличиваем счётчик цепочки
+        // Частицы
+        if (particleManager != null) {
+            particleManager.spawnAtPlayer(player);
+        }
+
         int currentChain = chainCounts.getOrDefault(uuid, 0);
         chainCounts.put(uuid, currentChain + 1);
 
-        // Останавливаем зацеп
         stopCling(player);
 
         MessageSender msg = plugin.getMessageSender();
@@ -373,9 +354,6 @@ public class WallCling implements Mechanic {
         plugin.getDebugger().debug(player, "WallCling", "Отскок #" + (currentChain + 1) + ", дистанция=" + leapDistance);
     }
 
-    /**
-     * Останавливает зацеп/сползание.
-     */
     private void stopCling(Player player) {
         UUID uuid = player.getUniqueId();
         clingStates.put(uuid, ClingState.NONE);
