@@ -1,6 +1,10 @@
 # ParkShool v1.0.0 by AllFire
 # Главный конфигурационный файл
 
+# Глобальное отключение всех условий
+# true = conditions проверяются, false = игнорируются для всех механик
+global_conditions_enabled: true
+
 constants:
   BASE_JUMP: 1.5
   TICK_TO_SECOND: 20
