@@ -4,9 +4,11 @@ import me.allfire.parkshool.ParkShool;
 import me.allfire.parkshool.conditions.ConditionParser;
 import me.allfire.parkshool.formula.FormulaParser;
 import me.allfire.parkshool.messages.MessageSender;
+import me.allfire.parkshool.particles.ParticleManager;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -37,10 +39,11 @@ public class DoubleJump implements Mechanic {
     private Double fallDamageMultCap;
 
     // Состояние игроков
-    private final Map<UUID, Integer> jumpCounts = new HashMap<>();      // сколько прыжков использовано
-    private final Map<UUID, Long> lastJumpTimes = new HashMap<>();       // время последнего прыжка
-    private final Map<UUID, Boolean> wasOnGround = new HashMap<>();     // был ли на земле в прошлый тик
-    private final Map<UUID, Float> storedFallDistances = new HashMap<>(); // сохранённая дистанция падения
+    private final Map<UUID, Integer> jumpCounts = new HashMap<>();
+    private final Map<UUID, Long> lastJumpTimes = new HashMap<>();
+    private final Map<UUID, Boolean> wasOnGround = new HashMap<>();
+    private final Map<UUID, Float> storedFallDistances = new HashMap<>();
+    private ParticleManager particleManager;
 
     public DoubleJump(ParkShool plugin) {
         this.plugin = plugin;
@@ -77,6 +80,12 @@ public class DoubleJump implements Mechanic {
         this.fallDamageMultFormula = config.getString("fall_damage_multiplier_formula", "1.0");
         this.fallDamageMultFallback = config.getDouble("fall_damage_multiplier_fallback", 1.0);
         this.fallDamageMultCap = config.contains("fall_damage_multiplier_cap") ? config.getDouble("fall_damage_multiplier_cap") : null;
+
+        // Загрузка частиц
+        ConfigurationSection particleSection = config.getConfigurationSection("particles");
+        if (particleSection != null) {
+            this.particleManager = new ParticleManager(particleSection);
+        }
     }
 
     @Override
@@ -97,12 +106,10 @@ public class DoubleJump implements Mechanic {
         boolean onGround = player.isOnGround();
         boolean wasGround = wasOnGround.getOrDefault(uuid, true);
 
-        // Игрок приземлился — сбрасываем счётчик
         if (onGround && !wasGround) {
             onLand(player);
         }
 
-        // Игрок взлетел — даём возможность двойного прыжка
         if (!onGround && wasGround) {
             jumpCounts.put(uuid, 0);
             player.setAllowFlight(true);
@@ -117,14 +124,12 @@ public class DoubleJump implements Mechanic {
 
         UUID uuid = player.getUniqueId();
 
-        // Проверяем условия
         if (!checkConditions(player)) {
             return;
         }
 
         MessageSender msg = plugin.getMessageSender();
 
-        // Вычисляем параметры
         int maxCount = FormulaParser.parseInt(countCapFormula, player, countCapFallback, countCapCap);
         int timeoutTicks = FormulaParser.parseInt(timeoutTicksFormula, player, timeoutTicksFallback, timeoutTicksCap);
         double height = FormulaParser.parseDouble(heightFormula, player, heightFallback, heightCap);
@@ -132,12 +137,10 @@ public class DoubleJump implements Mechanic {
 
         int usedJumps = jumpCounts.getOrDefault(uuid, 0);
 
-        // Проверка количества
         if (usedJumps >= maxCount) {
             return;
         }
 
-        // Проверка таймаута
         Long lastJump = lastJumpTimes.get(uuid);
         long currentTick = player.getWorld().getFullTime();
         if (lastJump != null && (currentTick - lastJump) < timeoutTicks) {
@@ -146,26 +149,24 @@ public class DoubleJump implements Mechanic {
             return;
         }
 
-        // Проверка безопасной высоты падения
         float fallDistance = player.getFallDistance();
         if (fallDistance > maxSafeFall) {
             if (!preserveFallDistance) {
                 msg.send(player, "doublejump", "fall_too_far", Map.of());
                 return;
             }
-            // Сохраняем fallDistance для последующего множителя урона
             storedFallDistances.put(uuid, fallDistance);
         }
 
-        // Выполняем прыжок
         Vector velocity = player.getVelocity();
         velocity.setY(height);
         player.setVelocity(velocity);
 
-        // Не обнуляем fallDistance!
-        // player.setFallDistance() - НЕ вызываем
+        // Частицы
+        if (particleManager != null) {
+            particleManager.spawnAtPlayer(player);
+        }
 
-        // Обновляем счётчики
         jumpCounts.put(uuid, usedJumps + 1);
         lastJumpTimes.put(uuid, currentTick);
 
@@ -185,17 +186,14 @@ public class DoubleJump implements Mechanic {
 
     @Override
     public void onDamage(Player player) {
-        // Не прерываем механику при уроне, fall-урон обрабатывается в DamageListener
     }
 
     @Override
     public void onSneakStart(Player player) {
-        // Не используется
     }
 
     @Override
     public void onSneakEnd(Player player) {
-        // Не используется
     }
 
     @Override
@@ -215,23 +213,14 @@ public class DoubleJump implements Mechanic {
         storedFallDistances.clear();
     }
 
-    /**
-     * Проверить, есть ли сохранённая дистанция падения.
-     */
     public boolean hasStoredFallDistance(Player player) {
         return storedFallDistances.containsKey(player.getUniqueId());
     }
 
-    /**
-     * Получить множитель урона от падения.
-     */
     public double getFallDamageMultiplier(Player player) {
         return FormulaParser.parseDouble(fallDamageMultFormula, player, fallDamageMultFallback, fallDamageMultCap);
     }
 
-    /**
-     * Очистить сохранённую дистанцию падения.
-     */
     public void clearStoredFallDistance(Player player) {
         storedFallDistances.remove(player.getUniqueId());
     }
