@@ -12,9 +12,25 @@ import java.util.List;
 public class ConditionParser {
 
     private final List<Condition> conditions = new ArrayList<>();
+    private final boolean globalConditionsEnabled;
+    private final boolean hasConditions;
 
     public ConditionParser(FileConfiguration config) {
+        // Проверяем глобальный флаг
+        this.globalConditionsEnabled = ParkShool.getInstance().getConfigManager()
+            .getMainConfig().getBoolean("global_conditions_enabled", true);
+
         List<java.util.Map<?, ?>> conditionsList = config.getMapList("conditions");
+        this.hasConditions = !conditionsList.isEmpty();
+
+        if (!globalConditionsEnabled) {
+            return; // не парсим условия если глобально выключены
+        }
+
+        if (!hasConditions) {
+            return; // нет условий — ничего не проверяем
+        }
+
         for (java.util.Map<?, ?> map : conditionsList) {
             String type = (String) map.get("type");
             if (type == null) continue;
@@ -62,6 +78,17 @@ public class ConditionParser {
     }
 
     public boolean check(Player player) {
+        // Глобально отключены — пропускаем всех
+        if (!globalConditionsEnabled) {
+            return true;
+        }
+
+        // Нет условий — пропускаем
+        if (!hasConditions) {
+            return true;
+        }
+
+        // Проверяем каждое условие
         for (Condition condition : conditions) {
             boolean result = condition.check(player);
             ParkShool.getInstance().getDebugger().debug(player, "Conditions",
@@ -69,5 +96,9 @@ public class ConditionParser {
             if (!result) return false;
         }
         return true;
+    }
+
+    public boolean hasConditions() {
+        return hasConditions;
     }
 }
