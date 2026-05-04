@@ -1,0 +1,67 @@
+# ParkShool - Charged Jump
+
+chargedjump:
+  enabled: true
+
+  charge_key: "shift"
+  allow_movement: true
+  fall_mode: "free"
+  elytra_allowed: false
+
+  levels:
+    "1":
+      charge_ticks_formula: "40"
+      charge_ticks_fallback: 40
+      charge_ticks_cap: 200
+      height_formula: "5.0"
+      height_fallback: 5.0
+      height_cap: 20.0
+      speed_formula: "0.8"
+      speed_fallback: 0.8
+      speed_cap: 2.0
+    "2":
+      charge_ticks_formula: "60"
+      charge_ticks_fallback: 60
+      charge_ticks_cap: 200
+      height_formula: "8.0"
+      height_fallback: 8.0
+      height_cap: 30.0
+      speed_formula: "1.0"
+      speed_fallback: 1.0
+      speed_cap: 2.5
+    "3":
+      charge_ticks_formula: "80"
+      charge_ticks_fallback: 80
+      charge_ticks_cap: 200
+      height_formula: "12.0"
+      height_fallback: 12.0
+      height_cap: 40.0
+      speed_formula: "1.2"
+      speed_fallback: 1.2
+      speed_cap: 3.0
+
+  conditions:
+    - type: permission
+      permission: "parkshool.chargedjump"
+    - type: on_ground
+      value: true
+
+  messages:
+    charging:
+      enabled: true
+      channel: "actionbar"
+      text: "&eЗарядка... %progress%%%"
+    charged:
+      enabled: true
+      channel: "title"
+      text: "&aПРЫЖОК!"
+    interrupted:
+      enabled: true
+      channel: "actionbar"
+      text: "&cЗарядка прервана!"
+    no_elytra:
+      enabled: true
+      channel: "actionbar"
+      text: "&cЭлитры запрещены!"
+
+  debug: false
